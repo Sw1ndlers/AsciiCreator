@@ -1,11 +1,9 @@
-from PIL import Image
-import numpy as np
-import time
-import math
 import cv2
 from cv2.typing import MatLike
 
-def resizeVideo(videoCapture: cv2.VideoCapture, newWidth: int, newHeight: int) -> list[MatLike]:
+def resizeVideo(
+    videoCapture: cv2.VideoCapture, newWidth: int, newHeight: int
+) -> list[MatLike]:
     resizedFrames: list[MatLike] = []
 
     success, frame = videoCapture.read()

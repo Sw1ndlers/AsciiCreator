@@ -12,7 +12,7 @@ from videoProcessing import resizeVideo
 
 
 # videoName = "assets/rotatecube.mov"
-videoName = "assets/flowers.mp4"
+videoName = "assets/flowers2.mp4"
 videoCapture = cv2.VideoCapture(videoName)
 
 # TODO: Verify video exists and is open
@@ -46,6 +46,7 @@ threads = []
 
 framesLength = len(resizedFrames)
 
+
 def frameToText(frame: MatLike, i: int):
     global completedFrames
 
@@ -65,6 +66,7 @@ def frameToText(frame: MatLike, i: int):
 
     print(f"\rCompleted frames: {completedFrames}/{framesLength}", end="")
 
+
 start = time.time()
 print("Converting frames to text...")
 
@@ -77,8 +79,6 @@ for thread in threads:
     thread.join()
 
 print("\nConverted frames to text in", round(time.time() - start, 2), "seconds \n")
-    
 
 
 assembleVideo(outputFrames)
-
