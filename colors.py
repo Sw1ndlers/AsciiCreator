@@ -1,11 +1,4 @@
-characterGradient = " .:-=+*░#%@▒▓█"
-length = len(characterGradient)
-
-# Create a color range of [number, character] where number is the brightness mapping to the character
-# Reverse the characters, darkest -> brightest
-characterMap = [
-    [(i / (length - 1)) * 255, character] for i, character in enumerate(reversed(characterGradient))
-]
+from characters import characterMap
 
 # Return the brightness from a color, this method is not the mos accurate
 def getColorBrightness(r, g, b):

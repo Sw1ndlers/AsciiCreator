@@ -1,6 +1,4 @@
-/Roboto
 /assets
 /__pycache__
+/output
 output.json
-output.txt
-output.mp4
