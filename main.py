@@ -15,8 +15,8 @@ from videoProcessing import resizeVideo
 
 
 # videoName = "assets/flowers2.mp4"
-videoName = "assets/waterfall.mp4"
-# videoName = "assets/rotatecube.mov"
+# videoName = "assets/waterfall.mp4"
+videoName = "assets/rotatecube.mov"
 videoCapture = cv2.VideoCapture(videoName)
 
 if not os.path.exists(videoName):
@@ -43,7 +43,7 @@ if maxWidth != None:
 newWidth = math.floor(videoWidth * scaleFactor)
 newHeight = math.floor(videoHeight * scaleFactor * 0.4)
 
-coloredText = True
+coloredText = False
 
 print(f"Video size: {videoWidth}x{videoHeight}")
 

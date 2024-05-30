@@ -64,10 +64,8 @@ def setupGlobals(text: str) -> None:
     horizontalTextLength = font.getlength(textSplit[0])
     verticalTextLength = font.getlength("A" * len(textSplit), direction="ttb")
 
-    # finalVideoWidth = int(horizontalTextLength)
-    # finalVideoHeight = int(verticalTextLength)
-    finalVideoWidth = 1920
-    finalVideoHeight = 1080
+    finalVideoWidth = int(horizontalTextLength)
+    finalVideoHeight = int(verticalTextLength) * 1.3
 
     print(f"Final video size: {finalVideoWidth}x{finalVideoHeight}")
 
