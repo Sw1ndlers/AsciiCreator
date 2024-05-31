@@ -4,28 +4,13 @@ from PIL import ImageFont, ImageDraw, Image
 import cv2
 from cv2.typing import MatLike
 import threading
+import multiprocessing
 
 
-# Create a black image
 imageSize = (1920, 1080)
+backgroundColor = (0, 0, 0)
+textColor = (255, 255, 255)
 
-# image = Image.new("RGB", (imageSize[0], imageSize[1]), color="black")
-# imageDraw = ImageDraw.Draw(image)
-
-# fontSize = None
-# font = ImageFont.truetype("fonts/AnonymousPro-Regular.ttf", 1)
-
-# framesLock = threading.Lock()
-# completedFrames = 0
-
-# finalVideoWidth = None
-# finalVideoHeight = None
-
-# characterWidth = None
-# characterHeight = None
-
-backgroundColor = (255, 255, 255)
-textColor = (0, 0, 0)
 
 def pillowToMat(image: Image) -> MatLike:
     imageNumpy = np.array(image)
@@ -39,30 +24,35 @@ class TextToVideo:
         self.fontSize = None
         self.font = ImageFont.truetype("fonts/AnonymousPro-Regular.ttf", 1)
 
-        self.framesLock = threading.Lock()
-        self.completedFrames = 0
-
         self.finalVideoWidth = None
         self.finalVideoHeight = None
 
         self.characterWidth = None
         self.characterHeight = None
 
+        self.manager = multiprocessing.Manager()
+        self.completedFrames = multiprocessing.Value("i", 0)
 
-    def setFontSize(self, text: str) -> None:
+    def setFontSize(self, sampleFrame: str) -> None:
         self.fontSize = 1
+
+        text = sampleFrame.split("\n")[0]
 
         while True:
             textLength = self.font.getlength(text)
 
             if textLength >= imageSize[0]:
                 self.fontSize -= 0.1
-                self.font = ImageFont.truetype("fonts/AnonymousPro-Regular.ttf", self.fontSize)
+                self.font = ImageFont.truetype(
+                    "fonts/AnonymousPro-Regular.ttf", self.fontSize
+                )
 
                 return
 
             self.fontSize += 0.1
-            self.font = ImageFont.truetype("fonts/AnonymousPro-Regular.ttf", self.fontSize)
+            self.font = ImageFont.truetype(
+                "fonts/AnonymousPro-Regular.ttf", self.fontSize
+            )
 
     def setFinalVideoSize(self, text: str) -> None:
         textSplit = text.split("\n")
@@ -74,27 +64,31 @@ class TextToVideo:
         verticalTextLength = self.font.getlength("A" * len(textSplit), direction="ttb")
 
         self.finalVideoWidth = int(horizontalTextLength)
-        self.finalVideoHeight = int(verticalTextLength) 
+        self.finalVideoHeight = int(verticalTextLength)
 
         print(f"Final video size: {self.finalVideoWidth}x{self.finalVideoHeight}")
 
-    def createFrame(self, text: str, matFrames, index: int) -> MatLike:
-        image = Image.new("RGB", (self.finalVideoWidth, self.finalVideoHeight), color=backgroundColor)
+    def createFrame(
+        self, text: str, matFrames, matFramesAmount: int, index: int
+    ) -> MatLike:
+        image = Image.new(
+            "RGB", (self.finalVideoWidth, self.finalVideoHeight), color="black"
+        )
 
         imageDraw = ImageDraw.Draw(image)
         imageDraw.text((0, 0), text, textColor, font=self.font)
 
         imageBGR = pillowToMat(image)
 
-        with self.framesLock:
+        with self.completedFrames.get_lock():
             matFrames[index] = imageBGR
-            self.completedFrames += 1
+            self.completedFrames.value += 1
 
-        print(f"\rFrame {self.completedFrames}/{len(matFrames)}", end="")
+        print(f"\rFrame {self.completedFrames.value}/{matFramesAmount}", end="")
 
     def createFrames(self, textFrames: list[str]) -> list[MatLike]:
-        matFrames = [None] * len(textFrames)
-        threads = []
+        matFrames = self.manager.list([None] * len(textFrames))
+        matFramesAmount = len(matFrames)
 
         start = time.time()
         print("Creating frames from text...")
@@ -102,16 +96,22 @@ class TextToVideo:
         self.setFontSize(textFrames[0])
         self.setFinalVideoSize(textFrames[0])
 
+        processes = []
+
         for i, frame in enumerate(textFrames):
-            thread = threading.Thread(target=self.createFrame, args=(frame, matFrames, i))
+            process = multiprocessing.Process(
+                target=self.createFrame, args=(frame, matFrames, matFramesAmount, i)
+            )
+            process.start()
 
-            thread.start()
-            threads.append(thread)
+            processes.append(process)
 
-        for thread in threads:
-            thread.join()
+        for process in processes:
+            process.join()
 
-        print("\nCreated frames from text in ", round(time.time() - start, 2), "seconds\n")
+        print(
+            "\nCreated frames from text in ", round(time.time() - start, 2), "seconds\n"
+        )
 
         return matFrames
 
@@ -130,19 +130,3 @@ class TextToVideo:
 
         videoWriter.release()
         print("\rWrote frames to video", " " * 20)
-
-
-# read output.txt to get the text
-# outputFile = open("output.txt", "r")
-# outputText = outputFile.read()
-# outputFile.close()
-
-# # Create a frame with the text
-# frame = createFrame(outputText)
-
-# # Display the frame
-# cv2.imshow("Frame", frame)
-# cv2.waitKey(0)
-
-# imageDraw.text((0, 0), "X" * 320, (255, 255, 255), font=font)
-# image.show()
