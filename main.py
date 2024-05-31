@@ -1,4 +1,3 @@
-
 from PIL import Image
 import numpy as np
 import time
@@ -7,16 +6,16 @@ import cv2
 from cv2.typing import MatLike
 import threading
 import os
+from multiprocessing import Pool
 
-from coloredTypes import ColoredCharacter, ColoredCharacterFrame, ColoredCharacterLine
 from colors import getColorCharacter
-from videoCreation import assembleVideo
+from videoCreation import TextToVideo
 from videoProcessing import resizeVideo
 
 
-# videoName = "assets/flowers2.mp4"
+videoName = "assets/bird.mp4"
 # videoName = "assets/waterfall.mp4"
-videoName = "assets/rotatecube.mov"
+# videoName = "assets/rotatecube.mov"
 videoCapture = cv2.VideoCapture(videoName)
 
 if not os.path.exists(videoName):
@@ -32,9 +31,7 @@ videoHeight = videoCapture.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
 # Scale image by a factor or by max width, maxWidth takes priority
 scaleFactor = 1 / 6
-# maxWidth = 200
-maxWidth = 320
-# maxWidth = 600
+maxWidth = 800  # 200, 320, 600
 
 if maxWidth != None:
     scaleFactor = 1 / (videoWidth / maxWidth)
@@ -43,96 +40,72 @@ if maxWidth != None:
 newWidth = math.floor(videoWidth * scaleFactor)
 newHeight = math.floor(videoHeight * scaleFactor * 0.4)
 
-coloredText = False
-
 print(f"Video size: {videoWidth}x{videoHeight}")
 
 print(f"Resizing video to: {newWidth}x{newHeight}", end="")
 resizedFrames = resizeVideo(videoCapture, newWidth, newHeight)
 print(f"\rResized video to: {newWidth}x{newHeight}     \n")
 
-outputFrames: list[str] = [None] * len(resizedFrames)
-coloredOutputFrames: list[ColoredCharacterFrame] = [None] * len(resizedFrames)
-completedFrames = 0
-
-outputLock = threading.Lock()
-threads = []
 
 framesLength = len(resizedFrames)
 
 
-def frameToText(frame: MatLike, i: int, returnOutput=False):
-    global completedFrames
+class FramesToText:
+    def __init__(self):
+        self.outputFrames = [None] * framesLength
+        self.coloredOutputFrames = [None] * framesLength
+        self.completedFrames = 0
 
-    output = ""
-    for y in range(newHeight):
-        for x in range(newWidth):
-            pixel = frame[y, x]
-            [b, g, r] = pixel[:3]
+        self.outputLock = threading.Lock()
+        self.threads = []
 
-            output += getColorCharacter(r, g, b)
+    def frameToText(self, frame: MatLike, i: int, returnOutput=False):
+        output = ""
+        for y in range(newHeight):
+            for x in range(newWidth):
+                pixel = frame[y, x]
+                [b, g, r] = pixel[:3]
 
-        output += "\n"
+                output += getColorCharacter(r, g, b)
 
-    if returnOutput:
-        return output
+            output += "\n"
 
-    with outputLock:
-        outputFrames[i] = output
-        completedFrames += 1
+        if returnOutput:
+            return output
 
-        print(f"\rCompleted frames: {completedFrames}/{framesLength}", end="")
+        # with self.outputLock:
+        self.outputFrames[i] = output
+        self.completedFrames += 1
 
+        print(f"\rCompleted frames: {self.completedFrames}/{framesLength}", end="")
 
-def frameToTextColored(frame: MatLike, i: int):
-    global completedFrames
+    def generateText(self) -> list[str]:
+        start = time.time()
+        print("Converting frames to text...")
 
-    coloredOutputFrame = ColoredCharacterFrame(lines=[])
+        for i, frame in enumerate(resizedFrames):
+            thread = threading.Thread(target=self.frameToText, args=(frame, i))
 
-    for y in range(newHeight):
-        line = ColoredCharacterLine(characters=[])
+            thread.start()
+            self.threads.append(thread)
 
-        for x in range(newWidth):
-            pixel = frame[y, x]
-            [b, g, r] = pixel[:3]
+        for thread in self.threads:
+            thread.join()
 
-            line.characters.append(
-                ColoredCharacter(character=getColorCharacter(r, g, b), color=(r, g, b))
-            )
+        print(
+            "\nConverted frames to text in", round(time.time() - start, 2), "seconds \n"
+        )
 
-        coloredOutputFrame.lines.append(line)
-
-    with outputLock:
-        coloredOutputFrames[i] = coloredOutputFrame
-        completedFrames += 1
-
-        print(f"\rCompleted frames: {completedFrames}/{framesLength}", end="")
-
-
-start = time.time()
-print("Converting frames to text...")
-
-for i, frame in enumerate(resizedFrames):
-    if coloredText:
-        thread = threading.Thread(target=frameToTextColored, args=(frame, i))
-    else:
-        thread = threading.Thread(target=frameToText, args=(frame, i))
-
-    thread.start()
-    threads.append(thread)
-
-for thread in threads:
-    thread.join()
-
-print("\nConverted frames to text in", round(time.time() - start, 2), "seconds \n")
+        return self.outputFrames
 
 
 
-# print(outputFrames)
-# assembleVideo(outputFrames, True, sampleFrame)
 
-if coloredText:
-    sampleFrame = frameToText(resizedFrames[0], 0, True)
-    assembleVideo(coloredOutputFrames, True, sampleFrame)
-else:
-    assembleVideo(outputFrames, False, outputFrames[0])
+# 202.58 seconds
+
+frameTextGenerator = FramesToText()
+outputFrames = frameTextGenerator.generateText()
+
+# assembleVideo(outputFrames)
+textToVideo = TextToVideo()
+textToVideo.assembleVideo(outputFrames)

@@ -5,7 +5,6 @@ import cv2
 from cv2.typing import MatLike
 import threading
 
-from coloredTypes import ColoredCharacterFrame
 
 # Create a black image
 imageSize = (1920, 1080)
@@ -13,18 +12,20 @@ imageSize = (1920, 1080)
 # image = Image.new("RGB", (imageSize[0], imageSize[1]), color="black")
 # imageDraw = ImageDraw.Draw(image)
 
-fontSize = None
-font = ImageFont.truetype("fonts/AnonymousPro-Regular.ttf", 1)
+# fontSize = None
+# font = ImageFont.truetype("fonts/AnonymousPro-Regular.ttf", 1)
 
-framesLock = threading.Lock()
-completedFrames = 0
+# framesLock = threading.Lock()
+# completedFrames = 0
 
-finalVideoWidth = None
-finalVideoHeight = None
+# finalVideoWidth = None
+# finalVideoHeight = None
 
-characterWidth = None
-characterHeight = None
+# characterWidth = None
+# characterHeight = None
 
+backgroundColor = (255, 255, 255)
+textColor = (0, 0, 0)
 
 def pillowToMat(image: Image) -> MatLike:
     imageNumpy = np.array(image)
@@ -33,133 +34,102 @@ def pillowToMat(image: Image) -> MatLike:
     return imageBGR
 
 
-def setFontSize(text: str) -> None:
-    global fontSize, font, fullText
+class TextToVideo:
+    def __init__(self):
+        self.fontSize = None
+        self.font = ImageFont.truetype("fonts/AnonymousPro-Regular.ttf", 1)
 
-    fontSize = 1
+        self.framesLock = threading.Lock()
+        self.completedFrames = 0
 
-    while True:
-        textLength = font.getlength(text)
+        self.finalVideoWidth = None
+        self.finalVideoHeight = None
 
-        if textLength >= imageSize[0]:
-            fontSize -= 0.1
-            font = ImageFont.truetype("fonts/AnonymousPro-Regular.ttf", fontSize)
-
-            return
-
-        fontSize += 0.1
-        font = ImageFont.truetype("fonts/AnonymousPro-Regular.ttf", fontSize)
+        self.characterWidth = None
+        self.characterHeight = None
 
 
-def setupGlobals(text: str) -> None:
-    global finalVideoWidth, finalVideoHeight, characterWidth, characterHeight
+    def setFontSize(self, text: str) -> None:
+        self.fontSize = 1
 
-    setFontSize(text.split("\n")[0])
+        while True:
+            textLength = self.font.getlength(text)
 
-    textSplit = text.split("\n")
+            if textLength >= imageSize[0]:
+                self.fontSize -= 0.1
+                self.font = ImageFont.truetype("fonts/AnonymousPro-Regular.ttf", self.fontSize)
 
-    characterWidth = font.getlength("A")
-    characterHeight = font.getlength("A", direction="ttb")
+                return
 
-    horizontalTextLength = font.getlength(textSplit[0])
-    verticalTextLength = font.getlength("A" * len(textSplit), direction="ttb")
+            self.fontSize += 0.1
+            self.font = ImageFont.truetype("fonts/AnonymousPro-Regular.ttf", self.fontSize)
 
-    finalVideoWidth = int(horizontalTextLength)
-    finalVideoHeight = int(verticalTextLength) * 1.3
+    def setFinalVideoSize(self, text: str) -> None:
+        textSplit = text.split("\n")
 
-    print(f"Final video size: {finalVideoWidth}x{finalVideoHeight}")
+        self.characterWidth = self.font.getlength("A")
+        self.characterHeight = self.font.getlength("A", direction="ttb")
 
+        horizontalTextLength = self.font.getlength(textSplit[0])
+        verticalTextLength = self.font.getlength("A" * len(textSplit), direction="ttb")
 
-def createFrameColored(frame: ColoredCharacterFrame, matFrames, i: int) -> MatLike:
-    global completedFrames
+        self.finalVideoWidth = int(horizontalTextLength)
+        self.finalVideoHeight = int(verticalTextLength) 
 
-    image = Image.new("RGB", (finalVideoWidth, finalVideoHeight), color="black")
+        print(f"Final video size: {self.finalVideoWidth}x{self.finalVideoHeight}")
 
-    imageDraw = ImageDraw.Draw(image)
+    def createFrame(self, text: str, matFrames, index: int) -> MatLike:
+        image = Image.new("RGB", (self.finalVideoWidth, self.finalVideoHeight), color=backgroundColor)
 
-    y = 0
-    for line in frame.lines:
-        x = 0
+        imageDraw = ImageDraw.Draw(image)
+        imageDraw.text((0, 0), text, textColor, font=self.font)
 
-        for character in line.characters:
-            imageDraw.text(
-                (x, y), text=character.character, fill=character.color, font=font
-            )
-            x += characterWidth
+        imageBGR = pillowToMat(image)
 
-        y += characterHeight
+        with self.framesLock:
+            matFrames[index] = imageBGR
+            self.completedFrames += 1
 
-    imageBGR = pillowToMat(image)
+        print(f"\rFrame {self.completedFrames}/{len(matFrames)}", end="")
 
-    with framesLock:
-        matFrames[i] = imageBGR
-        completedFrames += 1
-        
-        print(f"\rFrame {completedFrames}/{len(matFrames)}", end="")
+    def createFrames(self, textFrames: list[str]) -> list[MatLike]:
+        matFrames = [None] * len(textFrames)
+        threads = []
 
+        start = time.time()
+        print("Creating frames from text...")
 
-def createFrame(text: str, matFrames, i: int) -> MatLike:
-    global completedFrames
+        self.setFontSize(textFrames[0])
+        self.setFinalVideoSize(textFrames[0])
 
-    image = Image.new("RGB", (finalVideoWidth, finalVideoHeight), color="black")
+        for i, frame in enumerate(textFrames):
+            thread = threading.Thread(target=self.createFrame, args=(frame, matFrames, i))
 
-    imageDraw = ImageDraw.Draw(image)
-    imageDraw.text((0, 0), text, (255, 255, 255), font=font)
+            thread.start()
+            threads.append(thread)
 
-    imageBGR = pillowToMat(image)
+        for thread in threads:
+            thread.join()
 
-    with framesLock:
-        matFrames[i] = imageBGR
-        completedFrames += 1
+        print("\nCreated frames from text in ", round(time.time() - start, 2), "seconds\n")
 
-    print(f"\rFrame {completedFrames}/{len(matFrames)}", end="")
+        return matFrames
 
+    def assembleVideo(self, textFrames: list[str]) -> None:
+        frames = self.createFrames(textFrames)
 
-def createFrames(inputFrames: list[str] | list[ColoredCharacterFrame], colored: bool, sampleFrame) -> list[MatLike]:
-    matFrames = [None] * len(inputFrames)
-    threads = []
+        print("Writing frames to video...", end="")
 
-    start = time.time()
-    print("Creating frames from text...")
+        fourcc = cv2.VideoWriter_fourcc(*"MJPG")
+        videoWriter = cv2.VideoWriter(
+            "output.avi", fourcc, 30, (self.finalVideoWidth, self.finalVideoHeight)
+        )
 
-    setupGlobals(sampleFrame)
+        for matFrame in frames:
+            videoWriter.write(matFrame)
 
-    for i, frame in enumerate(inputFrames):
-        # thread = threading.Thread(target=createFrame, args=(textFrame, matFrames, i))
-        if colored:
-            thread = threading.Thread(
-                target=createFrameColored, args=(frame, matFrames, i)
-            )
-        else:
-            thread = threading.Thread(target=createFrame, args=(frame, matFrames, i))
-
-        thread.start()
-        threads.append(thread)
-
-    for thread in threads:
-        thread.join()
-
-    print("\nCreated frames from text in ", round(time.time() - start, 2), "seconds\n")
-
-
-    return matFrames
-
-
-def assembleVideo(textFrames: list[str], colored: bool, sampleFrame: str=None) -> None:
-    frames = createFrames(textFrames, colored, sampleFrame)
-
-    print("Writing frames to video...", end="")
-
-    fourcc = cv2.VideoWriter_fourcc(*"MJPG")
-    videoWriter = cv2.VideoWriter(
-        "output.avi", fourcc, 30, (finalVideoWidth, finalVideoHeight)
-    )
-
-    for matFrame in frames:
-        videoWriter.write(matFrame)
-
-    videoWriter.release()
-    print("\rWrote frames to video                ")
+        videoWriter.release()
+        print("\rWrote frames to video", " " * 20)
 
 
 # read output.txt to get the text
