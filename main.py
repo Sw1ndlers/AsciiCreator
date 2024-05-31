@@ -32,7 +32,7 @@ videoHeight = videoCapture.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
 # Scale image by a factor or by max width, maxWidth takes priority
 scaleFactor = 1 / 6
-maxWidth = 320  # 200, 320, 600
+maxWidth = 600  # 200, 320, 600
 
 if maxWidth != None:
     scaleFactor = 1 / (videoWidth / maxWidth)
@@ -103,11 +103,6 @@ class FramesToText:
 frameTextGenerator = FramesToText()
 outputFrames = frameTextGenerator.generateText()
 
-# print(outputFrames[0])
-
-# save outputFrames[0] to a file
-with open("output.txt", "w") as file:
-    file.write(outputFrames[0])
 
 textToVideo = TextToVideo()
 textToVideo.assembleVideo(outputFrames)
