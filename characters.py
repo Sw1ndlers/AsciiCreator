@@ -1,5 +1,5 @@
 characterGradient = " `^\",:;Il!i~+_-?][}{)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$"[::-1]
-# characterGradient = '@%#*+=-:. '
+characterGradient = '@%#*+=-:. '
 
 
 length = len(characterGradient)

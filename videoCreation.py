@@ -33,6 +33,8 @@ class TextToVideo:
         self.manager = multiprocessing.Manager()
         self.completedFrames = multiprocessing.Value("i", 0)
 
+        self.maxProcesses = multiprocessing.cpu_count() - 1
+
     def setFontSize(self, sampleFrame: str) -> None:
         self.fontSize = 1
 

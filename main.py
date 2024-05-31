@@ -14,7 +14,7 @@ from videoCreation import TextToVideo
 from videoProcessing import resizeVideo
 
 
-videoName = "assets/bird.mp4"
+videoName = "assets/waterfall.mp4"
 # videoName = "assets/flowers2.mp4"
 # videoName = "assets/rotatecube.mov"
 videoCapture = cv2.VideoCapture(videoName)
@@ -43,7 +43,8 @@ newHeight = math.floor(videoHeight * scaleFactor * 0.4)
 
 print(f"Video size: {videoWidth}x{videoHeight}")
 
-print(f"Resizing video to: {newWidth}x{newHeight}", end="")
+print(f"Resizing video to: {newWidth}x{newHeight}", end="", flush=True)
+
 resizedFrames = resizeVideo(videoCapture, newWidth, newHeight)
 print(f"\rResized video to: {newWidth}x{newHeight}     \n")
 
@@ -103,6 +104,7 @@ class FramesToText:
 frameTextGenerator = FramesToText()
 outputFrames = frameTextGenerator.generateText()
 
-
+time.sleep(5) # Let cpu cool down
+ 
 textToVideo = TextToVideo()
 textToVideo.assembleVideo(outputFrames)
