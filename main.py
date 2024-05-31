@@ -14,7 +14,7 @@ from videoCreation import TextToVideo
 from videoProcessing import resizeVideo
 
 
-videoName = "assets/waterfall.mp4"
+videoName = "assets/bird.mp4"
 # videoName = "assets/flowers2.mp4"
 # videoName = "assets/rotatecube.mov"
 videoCapture = cv2.VideoCapture(videoName)
@@ -32,7 +32,7 @@ videoHeight = videoCapture.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
 # Scale image by a factor or by max width, maxWidth takes priority
 scaleFactor = 1 / 6
-maxWidth = 600  # 200, 320, 600
+maxWidth = 320  # 200, 320, 600
 
 if maxWidth != None:
     scaleFactor = 1 / (videoWidth / maxWidth)
@@ -104,7 +104,7 @@ class FramesToText:
 frameTextGenerator = FramesToText()
 outputFrames = frameTextGenerator.generateText()
 
-time.sleep(5) # Let cpu cool down
+# time.sleep(5) # Let cpu cool down
  
 textToVideo = TextToVideo()
 textToVideo.assembleVideo(outputFrames)

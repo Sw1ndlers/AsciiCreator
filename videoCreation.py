@@ -3,13 +3,18 @@ import numpy as np
 from PIL import ImageFont, ImageDraw, Image
 import cv2
 from cv2.typing import MatLike
-import threading
 import multiprocessing
+import subprocess
+import os
 
 
 imageSize = (1920, 1080)
 backgroundColor = (0, 0, 0)
 textColor = (255, 255, 255)
+
+keepRawVideo = False
+
+lineSpacingSubtract = 1.5
 
 
 def pillowToMat(image: Image) -> MatLike:
@@ -66,7 +71,9 @@ class TextToVideo:
         verticalTextLength = self.font.getlength("A" * len(textSplit), direction="ttb")
 
         self.finalVideoWidth = int(horizontalTextLength)
-        self.finalVideoHeight = int(verticalTextLength)
+        self.finalVideoHeight = int(verticalTextLength) - int(
+            lineSpacingSubtract * len(textSplit)
+        )
 
         print(f"Final video size: {self.finalVideoWidth}x{self.finalVideoHeight}")
 
@@ -78,7 +85,15 @@ class TextToVideo:
         )
 
         imageDraw = ImageDraw.Draw(image)
-        imageDraw.text((0, 0), text, textColor, font=self.font)
+        # imageDraw.text((0, 0), text, textColor, font=self.font)
+        # Draw text from top to bottom, lines separated by the height of a character
+        for i, line in enumerate(text.split("\n")):
+            imageDraw.text(
+                (0, i * (self.characterHeight - lineSpacingSubtract)),
+                line,
+                textColor,
+                font=self.font,
+            )
 
         imageBGR = pillowToMat(image)
 
@@ -116,6 +131,28 @@ class TextToVideo:
         )
 
         return matFrames
+    
+    def compressVideo(self) -> None:
+        print("Compressing video...", end="", flush=True)
+
+        subprocess.run(
+            [
+                "ffmpeg",
+                "-i",
+                "output_raw.avi",
+                "output.mp4",
+                "-hide_banner",
+                "-loglevel",
+                "warning",
+                "-nostats"
+            ],
+            stdout=subprocess.PIPE,
+        )
+
+        if not keepRawVideo:
+            os.remove("output_raw.avi")
+
+        print("\rCompressed video  ",)
 
     def assembleVideo(self, textFrames: list[str]) -> None:
         frames = self.createFrames(textFrames)
@@ -124,7 +161,7 @@ class TextToVideo:
 
         fourcc = cv2.VideoWriter_fourcc(*"MJPG")
         videoWriter = cv2.VideoWriter(
-            "output.avi", fourcc, 30, (self.finalVideoWidth, self.finalVideoHeight)
+            "output_raw.avi", fourcc, 30, (self.finalVideoWidth, self.finalVideoHeight)
         )
 
         for matFrame in frames:
@@ -132,3 +169,7 @@ class TextToVideo:
 
         videoWriter.release()
         print("\rWrote frames to video", " " * 20)
+
+        self.compressVideo()
+
+    
