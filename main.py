@@ -7,6 +7,7 @@ from cv2.typing import MatLike
 import threading
 import os
 from multiprocessing import Pool
+import multiprocessing
 
 from colors import getColorCharacter
 from videoCreation import TextToVideo
@@ -14,7 +15,7 @@ from videoProcessing import resizeVideo
 
 
 videoName = "assets/bird.mp4"
-# videoName = "assets/waterfall.mp4"
+# videoName = "assets/flowers2.mp4"
 # videoName = "assets/rotatecube.mov"
 videoCapture = cv2.VideoCapture(videoName)
 
@@ -31,7 +32,7 @@ videoHeight = videoCapture.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
 # Scale image by a factor or by max width, maxWidth takes priority
 scaleFactor = 1 / 6
-maxWidth = 800  # 200, 320, 600
+maxWidth = 320  # 200, 320, 600
 
 if maxWidth != None:
     scaleFactor = 1 / (videoWidth / maxWidth)
@@ -52,12 +53,13 @@ framesLength = len(resizedFrames)
 
 class FramesToText:
     def __init__(self):
-        self.outputFrames = [None] * framesLength
-        self.coloredOutputFrames = [None] * framesLength
-        self.completedFrames = 0
+        self.manager = multiprocessing.Manager()
 
-        self.outputLock = threading.Lock()
-        self.threads = []
+        self.outputFrames = self.manager.list([None] * framesLength)
+        self.completedFrames = multiprocessing.Value("i", 0)
+
+        self.processes = []
+
 
     def frameToText(self, frame: MatLike, i: int, returnOutput=False):
         output = ""
@@ -73,24 +75,24 @@ class FramesToText:
         if returnOutput:
             return output
 
-        # with self.outputLock:
         self.outputFrames[i] = output
-        self.completedFrames += 1
 
-        print(f"\rCompleted frames: {self.completedFrames}/{framesLength}", end="")
+        with self.completedFrames.get_lock():
+            self.completedFrames.value += 1
+            print(f"\rCompleted frames: {self.completedFrames.value}/{framesLength}", end="")
 
     def generateText(self) -> list[str]:
         start = time.time()
         print("Converting frames to text...")
 
         for i, frame in enumerate(resizedFrames):
-            thread = threading.Thread(target=self.frameToText, args=(frame, i))
+            process = multiprocessing.Process(target=self.frameToText, args=(frame, i))
+            process.start()
 
-            thread.start()
-            self.threads.append(thread)
+            self.processes.append(process)
 
-        for thread in self.threads:
-            thread.join()
+        for process in self.processes:
+            process.join()
 
         print(
             "\nConverted frames to text in", round(time.time() - start, 2), "seconds \n"
@@ -98,14 +100,14 @@ class FramesToText:
 
         return self.outputFrames
 
-
-
-
-# 202.58 seconds
-
 frameTextGenerator = FramesToText()
 outputFrames = frameTextGenerator.generateText()
 
-# assembleVideo(outputFrames)
+# print(outputFrames[0])
+
+# save outputFrames[0] to a file
+with open("output.txt", "w") as file:
+    file.write(outputFrames[0])
+
 textToVideo = TextToVideo()
 textToVideo.assembleVideo(outputFrames)
