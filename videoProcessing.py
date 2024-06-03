@@ -1,6 +1,7 @@
 import cv2
 from cv2.typing import MatLike
 
+# Resize a video given a cv2 video capture
 def resizeVideo(
     videoCapture: cv2.VideoCapture, newWidth: int, newHeight: int
 ) -> list[MatLike]:
