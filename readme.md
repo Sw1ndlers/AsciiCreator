@@ -2,9 +2,9 @@
 
 ## Setup
 
-Install [Libraqm](https://github.com/HOST-Oman/libraqm).  
-Install [FFmpeg](https://ffmpeg.org/).  
-Install requirements using `pip install -r requirements.txt`.  
+- Install [Libraqm](https://github.com/HOST-Oman/libraqm).  
+- Install [FFmpeg](https://ffmpeg.org/).  
+- Install requirements using `pip install -r requirements.txt`.  
 
 ## Usage
 

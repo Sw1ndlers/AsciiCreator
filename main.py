@@ -115,9 +115,8 @@ class FramesToText:
         return self.outputFrames
 
 
-# Create an instance of the frame to text generator
-frameTextGenerator = FramesToText()
 # Generate text from frames
+frameTextGenerator = FramesToText()
 outputFrames = frameTextGenerator.generateText()
 
 # Convert text frames to a video
