@@ -9,7 +9,6 @@ from colors import getColorCharacter
 from videoCreation import TextToVideo
 from videoProcessing import resizeVideo
 
-# videoPath = "assets/rotatecube.mov"
 videoPath = None
 while videoPath == None or not os.path.exists(videoPath):
     videoPath = input("Enter the path to the video file: ")
