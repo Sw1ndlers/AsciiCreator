@@ -9,6 +9,10 @@ from colors import getColorCharacter
 from videoCreation import TextToVideo
 from videoUtils import resizeVideo
 
+# Define scaling parameters
+scaleFactor = 1 / 6
+maxWidth = 320  # Max width takes priority
+
 videoPath = None
 while videoPath == None or not os.path.exists(videoPath):
     videoPath = input("Enter the path to the video file: ")
@@ -30,10 +34,6 @@ videoName = os.path.splitext(os.path.basename(videoPath))[0]
 # Get original video dimensions
 videoWidth = videoCapture.get(cv2.CAP_PROP_FRAME_WIDTH)
 videoHeight = videoCapture.get(cv2.CAP_PROP_FRAME_HEIGHT)
-
-# Define scaling parameters
-scaleFactor = 1 / 6
-maxWidth = 320  # Max width takes priority
 
 # Adjust scale factor if maxWidth is defined
 if maxWidth != None:
