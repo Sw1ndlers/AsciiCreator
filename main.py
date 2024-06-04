@@ -1,11 +1,8 @@
-from PIL import Image
-import numpy as np
 import time
 import math
 import cv2
 from cv2.typing import MatLike
 import os
-from multiprocessing import Pool
 import multiprocessing
 
 from colors import getColorCharacter
