@@ -6,6 +6,7 @@ from cv2.typing import MatLike
 import multiprocessing
 import subprocess
 import os
+from videoUtils import pillowToMat
 
 # Define image and text properties
 imageSize = (1920, 1080)
@@ -16,11 +17,7 @@ keepRawVideo = False
 lineSpacingSubtract = 1.5
 
 
-# Convert a PIL image to an OpenCV Mat
-def pillowToMat(image: Image) -> MatLike:
-    imageNumpy = np.array(image)
-    imageBGR = cv2.cvtColor(imageNumpy, cv2.COLOR_RGB2BGR)
-    return imageBGR
+
 
 
 # Class to convert text frames to a video
@@ -37,8 +34,6 @@ class TextToVideo:
 
         self.manager = multiprocessing.Manager()
         self.completedFrames = multiprocessing.Value("i", 0)
-
-        self.maxProcesses = multiprocessing.cpu_count() - 1
 
     # Set the appropriate font size based on the sample frame
     def setFontSize(self, sampleFrame: str) -> None:

@@ -7,23 +7,22 @@ import multiprocessing
 
 from colors import getColorCharacter
 from videoCreation import TextToVideo
-from videoProcessing import resizeVideo
+from videoUtils import resizeVideo
 
 videoPath = None
 while videoPath == None or not os.path.exists(videoPath):
     videoPath = input("Enter the path to the video file: ")
+
+    if not os.path.exists(videoPath):
+        print("Error: Video does not exist")
 print("")
 
 videoCapture = cv2.VideoCapture(videoPath)
 
-# Check if the video file exists
-if not os.path.exists(videoPath):
-    print("Error: Video does not exist")
-    exit()
 
 # Check if the video can be opened
 if not videoCapture.isOpened():
-    print("Error: Video could not be opened")
+    print("OpenCV Error: Video could not be opened")
     exit()
 
 videoName = os.path.splitext(os.path.basename(videoPath))[0]
