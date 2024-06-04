@@ -1,6 +1,6 @@
 import cv2
 from cv2.typing import MatLike
-from PIL import ImageFont, ImageDraw, Image
+from PIL import Image
 import cv2
 from cv2.typing import MatLike
 import numpy as np

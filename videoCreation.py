@@ -1,5 +1,4 @@
 import time
-import numpy as np
 from PIL import ImageFont, ImageDraw, Image
 import cv2
 from cv2.typing import MatLike
