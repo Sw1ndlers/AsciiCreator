@@ -29,8 +29,14 @@ https://github.com/Sw1ndlers/AsciiCreator/assets/103692349/a1ca5a82-2120-461a-ad
 
 https://github.com/Sw1ndlers/AsciiCreator/assets/103692349/a58f9a56-7ed6-43d3-b403-138dbcc92155
 
-### Flying BIrd
+### Flying Bird
 
 #### Original
 
+https://github.com/Sw1ndlers/AsciiCreator/assets/103692349/c2155fc2-c689-4ad9-8a62-19fcda57ff96
+
+
 #### ASCII (320 Resolution)
+
+https://github.com/Sw1ndlers/AsciiCreator/assets/103692349/ab79d7fb-f2e6-4e7b-8a66-babc7b157ef8
+
