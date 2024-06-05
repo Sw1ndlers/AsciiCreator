@@ -37,11 +37,12 @@ videoHeight = videoCapture.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
 # Adjust scale factor if maxWidth is defined
 if maxWidth != None:
-    scaleFactor = 1 / (videoWidth / maxWidth)
+    scaleFactor = maxWidth / videoWidth
+    # scaleFactor = 1 / (maxWidth / videoWidth) | Old method, didnt actually work?
 
 # Calculate new dimensions
 newWidth = math.floor(videoWidth * scaleFactor)
-newHeight = math.floor(videoHeight * scaleFactor * 0.4)
+newHeight = math.floor(videoHeight * scaleFactor)
 
 print(f"Video size: {videoWidth}x{videoHeight}")
 print(f"Resizing video to: {newWidth}x{newHeight}", end="", flush=True)

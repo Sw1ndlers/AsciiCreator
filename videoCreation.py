@@ -154,7 +154,7 @@ class TextToVideo:
     def assembleVideo(self, textFrames: list[str], fileName: str) -> None:
         frames = self.createFrames(textFrames)
 
-        print("Writing frames to video...", end="")
+        print("Writing frames to video...", end="", flush=True)
 
         fourcc = cv2.VideoWriter_fourcc(*"MJPG")
         videoWriter = cv2.VideoWriter(
