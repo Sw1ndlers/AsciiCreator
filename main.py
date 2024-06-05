@@ -119,4 +119,4 @@ outputFrames = frameTextGenerator.generateText()
 
 # Convert text frames to a video
 textToVideo = TextToVideo()
-textToVideo.assembleVideo(outputFrames, videoName)
+textToVideo.assembleVideo(outputFrames, f"{videoName}-{maxWidth}")

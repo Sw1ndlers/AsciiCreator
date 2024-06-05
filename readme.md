@@ -23,5 +23,6 @@
 
 #### Original
 
-#### ASCII
+#### ASCII (160 Resolution)
 
+#### ASCII (320 Resolution)
