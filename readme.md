@@ -35,8 +35,9 @@ https://github.com/Sw1ndlers/AsciiCreator/assets/103692349/4069a639-7cb6-4c19-a4
 
 https://github.com/Sw1ndlers/AsciiCreator/assets/103692349/c2155fc2-c689-4ad9-8a62-19fcda57ff96
 
-
 #### ASCII (320 Resolution)
 
-https://github.com/Sw1ndlers/AsciiCreator/assets/103692349/ab79d7fb-f2e6-4e7b-8a66-babc7b157ef8
+https://github.com/Sw1ndlers/AsciiCreator/assets/103692349/a6d30907-d62c-483d-960d-5b9326a90699
+
+
 
