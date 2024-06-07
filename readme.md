@@ -27,7 +27,7 @@ https://github.com/Sw1ndlers/AsciiCreator/assets/103692349/a1ca5a82-2120-461a-ad
 
 #### ASCII (320 Resolution)
 
-https://github.com/Sw1ndlers/AsciiCreator/assets/103692349/4069a639-7cb6-4c19-a4cf-ba1b66df9ecb
+https://github.com/Sw1ndlers/AsciiCreator/assets/103692349/3ba85eaf-6422-4fa1-a484-af83d0c0a922
 
 ### Flying Bird
 
