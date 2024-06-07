@@ -16,9 +16,6 @@ keepRawVideo = False
 lineSpacingSubtract = 1.5
 
 
-
-
-
 # Class to convert text frames to a video
 class TextToVideo:
     def __init__(self):
@@ -33,6 +30,8 @@ class TextToVideo:
 
         self.manager = multiprocessing.Manager()
         self.completedFrames = multiprocessing.Value("i", 0)
+
+        self.maxProcesses = 50
 
     # Set the appropriate font size based on the sample frame
     def setFontSize(self, sampleFrame: str) -> None:
@@ -96,17 +95,7 @@ class TextToVideo:
 
         print(f"\rFrame {self.completedFrames.value}/{matFramesAmount}", end="")
 
-    # Create frames from a list of text frames
-    def createFrames(self, textFrames: list[str]) -> list[MatLike]:
-        matFrames = self.manager.list([None] * len(textFrames))
-        matFramesAmount = len(matFrames)
-
-        start = time.time()
-        print("Creating frames from text...")
-
-        self.setFontSize(textFrames[0])
-        self.setFinalVideoSize(textFrames[0])
-
+    def processFrames(self, matFrames, matFramesAmount: int, textFrames: list[str]):
         processes = []
 
         # Start a process for each frame
@@ -121,9 +110,41 @@ class TextToVideo:
         for process in processes:
             process.join()
 
+    def processFramesSectioned(
+        self, matFrames, matFramesAmount: int, textFrames: list[str]
+    ):
+        maxProcesses = self.maxProcesses
+
+        for i in range(0, len(textFrames), maxProcesses):
+            processes = []
+            for j in range(i, min(i + maxProcesses, len(textFrames))):
+                process = multiprocessing.Process(
+                    target=self.createFrame,
+                    args=(textFrames[j], matFrames, matFramesAmount, j),
+                )
+                process.start()
+                processes.append(process)
+
+            for process in processes:
+                process.join()
+
+    # Create frames from a list of text frames
+    def createFrames(self, textFrames: list[str]) -> list[MatLike]:
+        matFrames = self.manager.list([None] * len(textFrames))
+        matFramesAmount = len(matFrames)
+
+        start = time.time()
+        print("Creating frames from text...")
+
+        self.setFontSize(textFrames[0])
+        self.setFinalVideoSize(textFrames[0])
+
+        self.processFramesSectioned(matFrames, matFramesAmount, textFrames)
+
         print(
             "\nCreated frames from text in ", round(time.time() - start, 2), "seconds\n"
         )
+
         return matFrames
 
     # Compress the raw video to a final output format

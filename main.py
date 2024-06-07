@@ -41,7 +41,7 @@ if maxWidth != None:
     # scaleFactor = 1 / (maxWidth / videoWidth) | Old method, didnt actually work?
 
 # Calculate new dimensions
-newWidth = math.floor(videoWidth * scaleFactor)
+newWidth = math.floor(videoWidth * scaleFactor * 1.4)
 newHeight = math.floor(videoHeight * scaleFactor)
 
 print(f"Video size: {videoWidth}x{videoHeight}")
